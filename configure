@@ -235,6 +235,10 @@ cat << EOF > config.h
 
 EOF
 
+needreallocarray=0
+needstrlcat=0
+needstrlcpy=0
+
 printf "checking for pledge... "
 pledgecheck
 if [ $? -eq 0 ] ; then
@@ -250,6 +254,7 @@ if [ $? -eq 0 ] ; then
   echo "#define HAVE_REALLOCARRAY" >> config.h
   echo "yes"
 else
+  needreallocarray=1
   echo "no"
 fi
 
@@ -259,6 +264,7 @@ if [ $? -eq 0 ] ; then
   echo "#define HAVE_STRLCAT" >> config.h
   echo "yes"
 else
+  needstrlcat=1
   echo "no"
 fi
 
@@ -268,7 +274,22 @@ if [ $? -eq 0 ] ; then
   echo "#define HAVE_STRLCPY" >> config.h
   echo "yes"
 else
+  needstrlcpy=1
   echo "no"
+fi
+
+echo "" >> config.h
+
+if [ $needreallocarray -eq 1 ] ; then
+  echo "extern void *reallocarray(void *, size_t, size_t);" >> config.h
+fi
+
+if [ $needstrlcat -eq 1 ] ; then
+  echo "extern size_t strlcat(char *, const char *, size_t);" >> config.h
+fi
+
+if [ $needstrlcpy -eq 1 ] ; then
+  echo "extern size_t strlcpy(char *, const char *, size_t);" >> config.h
 fi
 
 printf "creating Makefile... "
