@@ -1,0 +1,6 @@
+ed
+oed
+*.o
+*.core
+Makefile
+README

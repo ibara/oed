@@ -1,13 +1,14 @@
-/Makefile/1.11/Sat May 24 01:35:55 2014//
-/POSIX/1.8/Sat May 24 01:35:55 2014//
-/README/1.4/Sun Apr 20 09:29:36 2014//
-/buf.c/1.23/Tue Mar 22 17:58:28 2016//
-/ed.1/1.70/Thu Apr 26 12:18:54 2018//
 /ed.h/1.22/Sun Mar 27 00:43:38 2016//
-/glbl.c/1.19/Wed Apr 26 21:25:43 2017//
-/io.c/1.21/Thu Apr 26 12:18:54 2018//
-/main.c/1.61/Mon Feb 26 17:35:08 2018//
-/re.c/1.17/Tue Mar 22 17:58:28 2016//
-/sub.c/1.18/Tue Oct 11 06:54:05 2016//
-/undo.c/1.14/Tue Mar 22 17:58:28 2016//
-D
+/Makefile/1.12/Sat Jun 16 00:32:41 2018//
+/POSIX/1.8/Sat Jun 16 00:32:36 2018//
+/buf.c/1.23/Sat Jun 16 00:32:36 2018//
+/ed.1/1.70/Sat Jun 16 00:32:36 2018//
+/glbl.c/1.20/Sat Jun 16 00:32:41 2018//
+/io.c/1.22/Sat Jun 16 00:32:41 2018//
+/main.c/1.65/Result of merge//
+/re.c/1.17/Sat Jun 16 00:32:36 2018//
+/sub.c/1.18/Sat Jun 16 00:32:36 2018//
+/undo.c/1.14/Sat Jun 16 00:32:36 2018//
+D/USD.doc////
+D/test////
+/README/1.5/Sat Jun 16 00:36:57 2018//

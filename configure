@@ -8,7 +8,7 @@ cccheck() {
 cat << EOF > conftest.c
 int main(void){return 0;}
 EOF
-    $CC -o conftest conftest.c > /dev/null 2>&1
+    $CC $ldflags -o conftest conftest.c > /dev/null 2>&1
     if [ $? -eq 0 ] ; then
       ./conftest
       if [ $? -eq 0 ] ; then
@@ -25,12 +25,12 @@ EOF
     fi
   fi
 
-  for compiler in cc clang pcc xlc gcc ; do
+  for compiler in cc clang pcc xlc cparser gcc ; do
 cat << EOF > conftest.c
 int main(void){return 0;}
 EOF
 
-    $compiler -o conftest conftest.c > /dev/null 2>&1
+    $compiler $ldflags -o conftest conftest.c > /dev/null 2>&1
 
     if [ $? -eq 0 ] ; then
       ./conftest
@@ -55,7 +55,7 @@ pledgecheck() {
 #include <unistd.h>
 int main(void){pledge(NULL,NULL);return 0;}
 EOF
-  $cc $tflags -o conftest conftest.c > /dev/null 2>&1
+  $cc $tflags $ldflags -o conftest conftest.c > /dev/null 2>&1
   if [ $? -eq 0 ] ; then
     rm -f conftest conftest.c
     return 0
@@ -70,7 +70,7 @@ reallocarraycheck() {
 #include <stdlib.h>
 int main(void){reallocarray(NULL, 0, 0);return 0;}
 EOF
-  $cc $tflags -o conftest conftest.c > /dev/null 2>&1
+  $cc $tflags $ldflags -o conftest conftest.c > /dev/null 2>&1
   if [ $? -eq 0 ] ; then
     rm -f conftest conftest.c
     return 0
@@ -85,7 +85,7 @@ strlcatcheck() {
 #include <string.h>
 int main(void){strlcat(NULL,NULL,0);return 0;}
 EOF
-  $cc $tflags -o conftest conftest.c > /dev/null 2>&1
+  $cc $tflags $ldflags -o conftest conftest.c > /dev/null 2>&1
   if [ $? -eq 0 ] ; then
     rm -f conftest conftest.c
     return 0
@@ -100,7 +100,7 @@ strlcpycheck() {
 #include <string.h>
 int main(void){strlcpy(NULL,NULL,0);return 0;}
 EOF
-  $cc $tflags -o conftest conftest.c > /dev/null 2>&1
+  $cc $tflags $ldflags -o conftest conftest.c > /dev/null 2>&1
   if [ $? -eq 0 ] ; then
     rm -f conftest conftest.c
     return 0
@@ -114,7 +114,7 @@ wflagcheck() {
   cat << EOF > conftest.c
 int main(void){return 0;}
 EOF
-  $cc -w -o conftest conftest.c > /dev/null 2> conftest.err
+  $cc -w $ldflags -o conftest conftest.c > /dev/null 2> conftest.err
   grep ':' conftest.err > /dev/null 2>&1
   if [ $? -eq 0 ] ; then
     rm -f conftest conftest.err conftest.c
@@ -183,19 +183,19 @@ do
 done
 
 if [ ! -z "$CFLAGS" ] ; then
-  cflags="$CFLAGS -DBACKWARDS"
+  cflags="$CFLAGS"
 else
-  cflags="-DBACKWARDS"
+  cflags=""
 fi
 
 if [ ! -z "$LDFLAGS" ] ; then
-  ldflags="$LDFLAGS "
+  ldflags="$LDFLAGS"
 else
   ldflags=""
 fi
 
 if [ $static -ne 0 ] ; then
-  ldflags="${ldflags}-static"
+  ldflags="$ldflags -static"
 fi
 
 printf "checking for C compiler... "
@@ -303,10 +303,10 @@ install:
 	install -d \${DESTDIR}\${PREFIX}/bin
 	install -d \${DESTDIR}\${MANDIR}/man1
 	install -c -s -m 755 \${PROG} \${DESTDIR}\${PREFIX}/bin
-	install -c -m 644 oksh.1 \${DESTDIR}\${MANDIR}/man1/\${PROG}.1
+	install -c -m 644 oed.1 \${DESTDIR}\${MANDIR}/man1/\${PROG}.1
 
 test:
-	echo "No tests"
+	@echo "No tests"
 
 clean:
 	rm -f \${PROG} \${OBJS}
