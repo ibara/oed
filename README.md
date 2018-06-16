@@ -41,4 +41,5 @@ for details.
 
 Get a tarball
 -------------
-http://devio.us/~bcallah/oed/oed-20180428.tar.gz
+Currently not available while Devio.us is down for repairs.
+Check out the code directly from GitHub for now!
