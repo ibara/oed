@@ -303,7 +303,7 @@ install:
 	install -d \${DESTDIR}\${PREFIX}/bin
 	install -d \${DESTDIR}\${MANDIR}/man1
 	install -c -s -m 755 \${PROG} \${DESTDIR}\${PREFIX}/bin
-	install -c -m 644 oed.1 \${DESTDIR}\${MANDIR}/man1/\${PROG}.1
+	install -c -m 644 ed.1 \${DESTDIR}\${MANDIR}/man1/\${PROG}.1
 
 test:
 	@echo "No tests"
