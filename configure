@@ -15,10 +15,6 @@ EOF
 	rm -f conftest conftest.c
 	cc="$CC"
 	return 0
-      else
-	echo "could not build working executables"
-	echo "Please ensure your C compiler is a native compiler"
-	exit 1
       fi
     else
       rm -f conftest conftest.c
@@ -39,6 +35,7 @@ EOF
 	cc="$compiler"
 	return 0
       else
+	rm -f conftest conftest.c
 	echo "could not build working executables"
 	echo "Please ensure your C compiler is a native compiler"
 	exit 1
@@ -136,6 +133,7 @@ mandir="$prefix/man"
 
 instprog="oed"
 static=0
+transform=0
 
 # Options
 for opt
@@ -161,6 +159,10 @@ do
 	  static=0
 	fi
 	;;
+    --program-transform-name=*)
+	transform=1
+	ptn=`echo $opt | cut -d '=' -f 2`
+	;;
     --help|-h)
 	echo "Usage: configure [options]"
 	echo ""
@@ -181,6 +183,13 @@ do
 	;;
   esac
 done
+
+if [ transform -eq 1 ] ; then
+  tempprog=`echo $instprog | sed -e $ptn` 2>/dev/null
+  if [ $? -eq 0 ] ; then
+    instprog=$tempprog
+  fi
+fi
 
 if [ ! -z "$CFLAGS" ] ; then
   cflags="$CFLAGS"
