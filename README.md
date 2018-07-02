@@ -18,6 +18,7 @@ Supported compilers
 * gcc (https://gcc.gnu.org/)
 * pcc (http://pcc.ludd.ltu.se/)
 * cparser (https://pp.ipd.kit.edu/firm/)
+* lacc (https://github.com/larmel/lacc)
 
 Building with a compiler not listed here? Add it and send a pull request!
 
