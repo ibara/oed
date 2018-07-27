@@ -12,12 +12,12 @@ EOF
     if [ $? -eq 0 ] ; then
       ./conftest
       if [ $? -eq 0 ] ; then
-	rm -f conftest conftest.c
+	rm -f conftest conftest.o conftest.c
 	cc="$CC"
 	return 0
       fi
     else
-      rm -f conftest conftest.c
+      rm -f conftest conftest.o conftest.c
     fi
   fi
 
@@ -31,17 +31,17 @@ EOF
     if [ $? -eq 0 ] ; then
       ./conftest
       if [ $? -eq 0 ] ; then
-	rm -f conftest conftest.c
+	rm -f conftest conftest.o conftest.c
 	cc="$compiler"
 	return 0
       else
-	rm -f conftest conftest.c
+	rm -f conftest conftest.o conftest.c
 	echo "could not build working executables"
 	echo "Please ensure your C compiler is a native compiler"
 	exit 1
       fi
     else
-      rm -f conftest conftest.c
+      rm -f conftest conftest.o conftest.c
     fi
   done
   return 1
@@ -54,10 +54,10 @@ int main(void){pledge(NULL,NULL);return 0;}
 EOF
   $cc $cflags $ldflags -o conftest conftest.c > /dev/null 2>&1
   if [ $? -eq 0 ] ; then
-    rm -f conftest conftest.c
+    rm -f conftest conftest.o conftest.c
     return 0
   else
-    rm -f conftest conftest.c
+    rm -f conftest conftest.o conftest.c
     return 1
   fi
 }
@@ -69,10 +69,10 @@ int main(void){reallocarray(NULL, 0, 0);return 0;}
 EOF
   $cc $cflags $ldflags -o conftest conftest.c > /dev/null 2>&1
   if [ $? -eq 0 ] ; then
-    rm -f conftest conftest.c
+    rm -f conftest conftest.o conftest.c
     return 0
   else
-    rm -f conftest conftest.c
+    rm -f conftest conftest.o conftest.c
     return 1
   fi
 }
@@ -84,10 +84,10 @@ int main(void){strlcat(NULL,NULL,0);return 0;}
 EOF
   $cc $cflags $ldflags -o conftest conftest.c > /dev/null 2>&1
   if [ $? -eq 0 ] ; then
-    rm -f conftest conftest.c
+    rm -f conftest conftest.o conftest.c
     return 0
   else
-    rm -f conftest conftest.c
+    rm -f conftest conftest.o conftest.c
     return 1
   fi
 }
@@ -99,10 +99,10 @@ int main(void){strlcpy(NULL,NULL,0);return 0;}
 EOF
   $cc $cflags $ldflags -o conftest conftest.c > /dev/null 2>&1
   if [ $? -eq 0 ] ; then
-    rm -f conftest conftest.c
+    rm -f conftest conftest.o conftest.c
     return 0
   else
-    rm -f conftest conftest.c
+    rm -f conftest conftest.o conftest.c
     return 1
   fi
 }
