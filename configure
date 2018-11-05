@@ -114,8 +114,6 @@ else
   prefix="/usr/local"
 fi
 
-mandir="$prefix/man"
-
 if [ ! -x "$(command -v ed)" ] ; then
   prog="ed"
 else
@@ -123,6 +121,7 @@ else
 fi
 
 static=0
+setmandir=0
 
 # Options
 for opt
@@ -133,6 +132,7 @@ do
 	;;
     --mandir=*)
 	mandir=`echo $opt | cut -d '=' -f 2`
+	setmandir=1
 	;;
     --disable-static|--enable-static)
 	if [ "x$opt" = "x--enable-static" ] ; then
@@ -153,7 +153,7 @@ do
 	printf "  --prefix=PREFIX         "
 	echo "Top level install directory is PREFIX [$prefix]"
 	printf "  --mandir=MANDIR         "
-	echo "Manual pages are installed to MANDIR [$mandir]"
+	echo "Manual pages are installed to MANDIR [$prefix/man]"
 	printf "  --program-name=NAME     "
 	echo "Install executable as NAME [default=$prog]"
 	printf "  --enable-static         "
@@ -164,6 +164,10 @@ do
 	;;
   esac
 done
+
+if [ setmandir -eq 0 ] ; then
+  mandir="$prefix/man"
+fi
 
 if [ ! -z "$CFLAGS" ] ; then
   cflags="$CFLAGS"
@@ -288,7 +292,7 @@ fi
 cat << EOF >> Makefile
 
 PREFIX =	$prefix
-MANDIR =	\${PREFIX}/man
+MANDIR =	$mandir
 
 PROG =	$prog
 OBJS =	buf.o glbl.o io.o main.o re.o sub.o undo.o \\
