@@ -76,6 +76,7 @@ static int copy_lines(int);
 static int mark_line_node(line_t *, int);
 static int get_marked_node_addr(int);
 static line_t *dup_line_node(line_t *);
+static int is_legal_filename(char *);
 
 sigjmp_buf env;
 
@@ -98,6 +99,7 @@ int isglobal;			/* if set, doing a global command */
 int modified;			/* if set, buffer modified since last write */
 int scripted = 0;		/* if set, suppress diagnostics */
 int interactive = 0;		/* if set, we are in interactive mode */
+int red = 0;			/* if set, restrict shell/directory access */
 
 volatile sig_atomic_t mutex = 0;  /* if set, signals set flags */
 volatile sig_atomic_t sighup = 0; /* if set, sighup received while mutex set */
@@ -135,6 +137,8 @@ main(volatile int argc, char ** volatile argv)
 #endif
 
 	home = getenv("HOME");
+
+	red = (n = strlen(argv[0])) > 2 && argv[0][n - 3] == 'r';
 
 top:
 	while ((c = getopt(argc, argv, "p:sx")) != -1)
@@ -191,7 +195,7 @@ top:
 	} else {
 		init_buffers();
 		sigactive = 1;			/* enable signal handlers */
-		if (argc && **argv) {
+		if (argc && **argv && is_legal_filename(*argv)) {
 			if (read_file(*argv, 0) < 0 && !interactive)
 				quit(2);
 			else if (**argv != '!')
@@ -952,7 +956,7 @@ get_filename(int save)
 	for (n = 0; *ibufp != '\n';)
 		p[n++] = *ibufp++;
 	p[n] = '\0';
-	return p;
+	return is_legal_filename(p) ? p : NULL;
 }
 
 
@@ -968,7 +972,10 @@ get_shell_command(void)
 	int i = 0;
 	int j = 0;
 
-	if ((s = ibufp = get_extended_line(&j, 1)) == NULL)
+	if (red) {
+		seterrmsg("shell access restricted");
+		return ERR;
+	} else if ((s = ibufp = get_extended_line(&j, 1)) == NULL)
 		return ERR;
 	REALLOC(buf, n, j + 1, ERR);
 	buf[i++] = '!';			/* prefix command w/ bang */
@@ -1393,4 +1400,15 @@ handle_winch(int signo)
 			cols = ws.ws_col - 8;
 	}
 	errno = save_errno;
+}
+
+/* is_legal_filename: return a legal filename */
+static int
+is_legal_filename(char *s)
+{
+	if (red && (*s == '!' || !strcmp(s, "..") || strchr(s, '/'))) {
+		seterrmsg("shell access restricted");
+		return 0;
+	}
+	return 1;
 }
