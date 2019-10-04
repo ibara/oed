@@ -30,3 +30,5 @@ Portability files are ISC licensed; see individual file headers
 for details.
 ## Get a tarball
 Tarballs can be found in the Releases tab.
+
+The latest release is oed-6.6.
