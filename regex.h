@@ -41,6 +41,8 @@
 
 #include <sys/types.h>
 
+#include "config.h"
+
 /* types */
 typedef off_t regoff_t;
 

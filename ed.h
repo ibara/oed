@@ -34,8 +34,6 @@
 #include <regex.h>
 #include <signal.h>
 
-#include "config.h"
-
 #define ERR		(-2)
 #define EMOD		(-3)
 #define FATAL		(-4)
