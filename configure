@@ -170,9 +170,9 @@ if [ $setmandir -eq 0 ] ; then
 fi
 
 if [ ! -z "$CFLAGS" ] ; then
-  cflags="$CFLAGS"
+  cflags="$CFLAGS -I."
 else
-  cflags=""
+  cflags="-I."
 fi
 
 if [ ! -z "$LDFLAGS" ] ; then
@@ -296,6 +296,7 @@ MANDIR =	$mandir
 
 PROG =	$prog
 OBJS =	buf.o glbl.o io.o main.o re.o sub.o undo.o \\
+	regcomp.o regerror.o regexec.o regfree.o \\
 	reallocarray.o strlcat.o strlcpy.o
 
 all: \${PROG}

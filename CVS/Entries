@@ -1,14 +1,14 @@
 /ed.h/1.22/Sun Mar 27 00:43:38 2016//
+/main.c/1.66/Result of merge//
 D/USD.doc////
 D/test////
-/Makefile/1.12/Fri Oct  4 02:51:42 2019//
-/POSIX/1.8/Fri Oct  4 02:51:37 2019//
-/README/1.5/Fri Oct  4 02:51:42 2019//
-/buf.c/1.24/Fri Oct  4 02:51:42 2019//
-/ed.1/1.75/Fri Oct  4 02:51:42 2019//
-/glbl.c/1.20/Fri Oct  4 02:51:37 2019//
-/io.c/1.24/Fri Oct  4 02:51:42 2019//
-/main.c/1.66/Result of merge//
-/re.c/1.19/Fri Oct  4 02:51:37 2019//
-/sub.c/1.18/Fri Oct  4 02:51:37 2019//
-/undo.c/1.14/Fri Oct  4 02:51:37 2019//
+/Makefile/1.12/Sat Dec 21 21:52:08 2019//
+/POSIX/1.8/Sat Dec 21 21:51:59 2019//
+/README/1.5/Sat Dec 21 21:52:08 2019//
+/buf.c/1.24/Sat Dec 21 21:51:59 2019//
+/ed.1/1.75/Sat Dec 21 21:51:59 2019//
+/glbl.c/1.20/Sat Dec 21 21:51:59 2019//
+/io.c/1.24/Sat Dec 21 21:51:59 2019//
+/re.c/1.19/Sat Dec 21 21:51:59 2019//
+/sub.c/1.18/Sat Dec 21 21:51:59 2019//
+/undo.c/1.14/Sat Dec 21 21:51:59 2019//
