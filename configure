@@ -165,7 +165,7 @@ do
   esac
 done
 
-if [ setmandir -eq 0 ] ; then
+if [ $setmandir -eq 0 ] ; then
   mandir="$prefix/man"
 fi
 
