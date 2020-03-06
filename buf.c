@@ -197,7 +197,11 @@ get_addressed_line_node(int n)
 
 extern int newline_added;
 
+#ifdef __TERMUX__
+#define SCRATCH_TEMPLATE      "/data/data/com.termux/files/usr/tmp/ed.XXXXXXXXXX"
+#else
 #define SCRATCH_TEMPLATE      "/tmp/ed.XXXXXXXXXX"
+#endif
 static char sfn[sizeof(SCRATCH_TEMPLATE)+1] = "";	/* scratch file name */
 
 /* open_sbuf: open scratch file */
