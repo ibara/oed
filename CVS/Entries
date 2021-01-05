@@ -2,13 +2,13 @@
 /buf.c/1.24/Sat Dec 21 21:51:59 2019//
 D/USD.doc////
 D/test////
-/Makefile/1.12/Fri May 22 22:22:54 2020//
-/POSIX/1.8/Fri May 22 22:22:48 2020//
-/README/1.5/Fri May 22 22:22:54 2020//
-/ed.1/1.75/Fri May 22 22:22:48 2020//
-/ed.h/1.22/Fri May 22 22:22:48 2020//
-/glbl.c/1.20/Fri May 22 22:22:48 2020//
-/io.c/1.24/Fri May 22 22:22:48 2020//
-/re.c/1.19/Fri May 22 22:22:48 2020//
-/sub.c/1.18/Fri May 22 22:22:48 2020//
-/undo.c/1.14/Fri May 22 22:22:48 2020//
+/Makefile/1.12/Tue Jan  5 23:15:24 2021//
+/POSIX/1.8/Tue Jan  5 23:11:26 2021//
+/README/1.5/Tue Jan  5 23:15:24 2021//
+/ed.1/1.75/Tue Jan  5 23:11:26 2021//
+/ed.h/1.22/Tue Jan  5 23:11:26 2021//
+/glbl.c/1.20/Tue Jan  5 23:11:26 2021//
+/io.c/1.24/Tue Jan  5 23:11:26 2021//
+/re.c/1.19/Tue Jan  5 23:11:26 2021//
+/sub.c/1.18/Tue Jan  5 23:11:26 2021//
+/undo.c/1.14/Tue Jan  5 23:11:26 2021//

@@ -1,4 +1,4 @@
-/*	$OpenBSD: regex2.h,v 1.8 2013/04/17 17:39:29 tedu Exp $	*/
+/*	$OpenBSD: regex2.h,v 1.12 2021/01/03 17:07:58 tb Exp $	*/
 
 /*-
  * Copyright (c) 1992, 1993, 1994 Henry Spencer.
@@ -106,19 +106,27 @@ typedef struct {
 	uch *ptr;		/* -> uch [csetsize] */
 	uch mask;		/* bit within array */
 	uch hash;		/* hash code */
-	size_t smultis;
-	char *multis;		/* -> char[smulti]  ab\0cd\0ef\0\0 */
 } cset;
-/* note that CHadd and CHsub are unsafe, and CHIN doesn't yield 0/1 */
-#define	CHadd(cs, c)	((cs)->ptr[(uch)(c)] |= (cs)->mask, (cs)->hash += (c))
-#define	CHsub(cs, c)	((cs)->ptr[(uch)(c)] &= ~(cs)->mask, (cs)->hash -= (c))
-#define	CHIN(cs, c)	((cs)->ptr[(uch)(c)] & (cs)->mask)
-#define	MCadd(p, cs, cp)	mcadd(p, cs, cp)	/* regcomp() internal fns */
-#define	MCsub(p, cs, cp)	mcsub(p, cs, cp)
-#define	MCin(p, cs, cp)	mcin(p, cs, cp)
 
-/* stuff for character categories */
-typedef unsigned char cat_t;
+static inline void
+CHadd(cset *cs, char c)
+{
+	cs->ptr[(uch)c] |= cs->mask;
+	cs->hash += c;
+}
+
+static inline void
+CHsub(cset *cs, char c)
+{
+	cs->ptr[(uch)c] &= ~cs->mask;
+	cs->hash -= c;
+}
+
+static inline int
+CHIN(const cset *cs, char c)
+{
+	return (cs->ptr[(uch)c] & cs->mask) != 0;
+}
 
 /*
  * main compiled-expression structure
@@ -141,15 +149,11 @@ struct re_guts {
 #		define	BAD	04	/* something wrong */
 	int nbol;		/* number of ^ used */
 	int neol;		/* number of $ used */
-	int ncategories;	/* how many character categories */
-	cat_t *categories;	/* ->catspace[-CHAR_MIN] */
 	char *must;		/* match must contain this string */
 	int mlen;		/* length of must */
 	size_t nsub;		/* copy of re_nsub */
 	int backrefs;		/* does it use back references? */
 	sopno nplus;		/* how deep does it nest +s? */
-	/* catspace must be last */
-	cat_t catspace[NC];	/* actually [NC] */
 };
 
 /* misc utilities */

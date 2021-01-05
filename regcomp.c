@@ -1,4 +1,4 @@
-/*	$OpenBSD: regcomp.c,v 1.34 2019/02/05 20:57:30 millert Exp $ */
+/*	$OpenBSD: regcomp.c,v 1.43 2021/01/03 17:07:57 tb Exp $ */
 /*-
  * Copyright (c) 1992, 1993, 1994 Henry Spencer.
  * Copyright (c) 1992, 1993, 1994
@@ -53,8 +53,8 @@
  * other clumsinesses
  */
 struct parse {
-	char *next;		/* next character in RE */
-	char *end;		/* end of string (-> NUL normally) */
+	const char *next;	/* next character in RE */
+	const char *end;	/* end of string (-> NUL normally) */
 	int error;		/* has an error been seen? */
 	sop *strip;		/* malloced strip */
 	sopno ssize;		/* malloced strip size (allocated) */
@@ -84,18 +84,12 @@ static void ordinary(struct parse *, int);
 static void backslash(struct parse *, int);
 static void nonnewline(struct parse *);
 static void repeat(struct parse *, sopno, int, int);
-static int seterr(struct parse *, int);
+static void seterr(struct parse *, int);
 static cset *allocset(struct parse *);
 static void freeset(struct parse *, cset *);
 static int freezeset(struct parse *, cset *);
 static int firstch(struct parse *, cset *);
 static int nch(struct parse *, cset *);
-static void mcadd(struct parse *, cset *, char *);
-static void mcinvert(struct parse *, cset *);
-static void mccase(struct parse *, cset *);
-static int isinsets(struct re_guts *, int);
-static int samesets(struct re_guts *, int, int);
-static void categorize(struct parse *, struct re_guts *);
 static sopno dupl(struct parse *, sopno, sopno);
 static void doemit(struct parse *, sop, size_t);
 static void doinsert(struct parse *, sop, size_t, sopno);
@@ -113,10 +107,10 @@ static char nuls[10];		/* place to point scanner in event of error */
  */
 #define	PEEK()	(*p->next)
 #define	PEEK2()	(*(p->next+1))
-#define	MORE()	(p->next < p->end)
-#define	MORE2()	(p->next+1 < p->end)
+#define	MORE()	(p->end - p->next > 0)
+#define	MORE2()	(p->end - p->next > 1)
 #define	SEE(c)	(MORE() && PEEK() == (c))
-#define	SEETWO(a, b)	(MORE() && MORE2() && PEEK() == (a) && PEEK2() == (b))
+#define	SEETWO(a, b)	(MORE2() && PEEK() == (a) && PEEK2() == (b))
 #define	EAT(c)	((SEE(c)) ? (NEXT(), 1) : 0)
 #define	EATTWO(a, b)	((SEETWO(a, b)) ? (NEXT2(), 1) : 0)
 #define	NEXT()	(p->next++)
@@ -124,7 +118,7 @@ static char nuls[10];		/* place to point scanner in event of error */
 #define	NEXTn(n)	(p->next += (n))
 #define	GETNEXT()	(*p->next++)
 #define	SETERROR(e)	seterr(p, (e))
-#define	REQUIRE(co, e)	(void) ((co) || SETERROR(e))
+#define	REQUIRE(co, e)	do { if (!(co)) SETERROR(e); } while (0)
 #define	EMIT(op, sopnd)	doemit(p, (sop)(op), (size_t)(sopnd))
 #define	INSERT(op, pos)	doinsert(p, (sop)(op), HERE()-(pos)+1, pos)
 #define	AHEAD(pos)		dofwd(p, pos, HERE()-(pos))
@@ -182,7 +176,7 @@ regcomp(regex_t *preg, const char *pattern, int cflags)
 
 	/* set things up */
 	p->g = g;
-	p->next = (char *)pattern;	/* convenience; we do not modify it */
+	p->next = pattern;
 	p->end = p->next + len;
 	p->error = 0;
 	p->ncsalloc = 0;
@@ -201,9 +195,6 @@ regcomp(regex_t *preg, const char *pattern, int cflags)
 	g->must = NULL;
 	g->mlen = 0;
 	g->nsub = 0;
-	g->ncategories = 1;	/* category 0 is "everything else" */
-	g->categories = &g->catspace[-(CHAR_MIN)];
-	memset(g->catspace, 0, sizeof(g->catspace));
 	g->backrefs = 0;
 
 	/* do it */
@@ -219,7 +210,6 @@ regcomp(regex_t *preg, const char *pattern, int cflags)
 	g->laststate = THERE();
 
 	/* tidy up loose ends and fill things in */
-	categorize(p, g);
 	stripsnug(p, g);
 	findmust(p, g);
 	g->nplus = pluscount(p, g);
@@ -623,15 +613,17 @@ p_bracket(struct parse *p)
 	int invert = 0;
 
 	/* Dept of Truly Sickening Special-Case Kludges */
-	if (p->next + 5 < p->end && strncmp(p->next, "[:<:]]", 6) == 0) {
-		EMIT(OBOW, 0);
-		NEXTn(6);
-		return;
-	}
-	if (p->next + 5 < p->end && strncmp(p->next, "[:>:]]", 6) == 0) {
-		EMIT(OEOW, 0);
-		NEXTn(6);
-		return;
+	if (p->end - p->next > 5) {
+		if (strncmp(p->next, "[:<:]]", 6) == 0) {
+			EMIT(OBOW, 0);
+			NEXTn(6);
+			return;
+		}
+		if (strncmp(p->next, "[:>:]]", 6) == 0) {
+			EMIT(OEOW, 0);
+			NEXTn(6);
+			return;
+		}
 	}
 
 	if ((cs = allocset(p)) == NULL) {
@@ -666,8 +658,6 @@ p_bracket(struct parse *p)
 				if (ci != i)
 					CHadd(cs, ci);
 			}
-		if (cs->multis != NULL)
-			mccase(p, cs);
 	}
 	if (invert) {
 		int i;
@@ -679,11 +669,7 @@ p_bracket(struct parse *p)
 				CHadd(cs, i);
 		if (p->g->cflags&REG_NEWLINE)
 			CHsub(cs, '\n');
-		if (cs->multis != NULL)
-			mcinvert(p, cs);
 	}
-
-	assert(cs->multis == NULL);		/* xxx */
 
 	if (nch(p, cs) == 1) {		/* optimize singleton sets */
 		ordinary(p, firstch(p, cs));
@@ -761,10 +747,10 @@ p_b_term(struct parse *p, cset *cs)
 static void
 p_b_cclass(struct parse *p, cset *cs)
 {
-	char *sp = p->next;
-	struct cclass *cp;
+	const char *sp = p->next;
+	const struct cclass *cp;
 	size_t len;
-	char *u;
+	const char *u;
 	char c;
 
 	while (MORE() && isalpha((uch)PEEK()))
@@ -782,8 +768,6 @@ p_b_cclass(struct parse *p, cset *cs)
 	u = cp->chars;
 	while ((c = *u++) != '\0')
 		CHadd(cs, c);
-	for (u = cp->multis; *u != '\0'; u += strlen(u) + 1)
-		MCadd(p, cs, u);
 }
 
 /*
@@ -825,8 +809,8 @@ static char			/* value of collating element */
 p_b_coll_elem(struct parse *p,
     int endc)			/* name ended by endc,']' */
 {
-	char *sp = p->next;
-	struct cname *cp;
+	const char *sp = p->next;
+	const struct cname *cp;
 	size_t len;
 
 	while (MORE() && !SEETWO(endc, ']'))
@@ -869,8 +853,8 @@ othercase(int ch)
 static void
 bothcases(struct parse *p, int ch)
 {
-	char *oldnext = p->next;
-	char *oldend = p->end;
+	const char *oldnext = p->next;
+	const char *oldend = p->end;
 	char bracket[3];
 
 	ch = (uch)ch;
@@ -892,15 +876,10 @@ bothcases(struct parse *p, int ch)
 static void
 ordinary(struct parse *p, int ch)
 {
-	cat_t *cap = p->g->categories;
-
 	if ((p->g->cflags&REG_ICASE) && isalpha((uch)ch) && othercase(ch) != ch)
 		bothcases(p, ch);
-	else {
+	else
 		EMIT(OCHAR, (uch)ch);
-		if (cap[ch] == 0)
-			cap[ch] = p->g->ncategories++;
-	}
 }
 
 /*
@@ -930,16 +909,12 @@ backslash(struct parse *p, int ch)
 static void
 nonnewline(struct parse *p)
 {
-	char *oldnext = p->next;
-	char *oldend = p->end;
-	char bracket[4];
+	const char *oldnext = p->next;
+	const char *oldend = p->end;
+	static const char bracket[4] = { '^', '\n', ']', '\0' };
 
 	p->next = bracket;
 	p->end = bracket+3;
-	bracket[0] = '^';
-	bracket[1] = '\n';
-	bracket[2] = ']';
-	bracket[3] = '\0';
 	p_bracket(p);
 	assert(p->next == bracket+3);
 	p->next = oldnext;
@@ -1019,14 +994,13 @@ repeat(struct parse *p,
 /*
  - seterr - set an error condition
  */
-static int			/* useless but makes type checking happy */
+static void
 seterr(struct parse *p, int e)
 {
 	if (p->error == 0)	/* keep earliest error condition */
 		p->error = e;
 	p->next = nuls;		/* try to bring things to a halt */
 	p->end = nuls;
-	return(0);		/* make the return value well-defined */
 }
 
 /*
@@ -1073,8 +1047,6 @@ allocset(struct parse *p)
 	cs->ptr = p->g->setbits + css*((no)/CHAR_BIT);
 	cs->mask = 1 << ((no) % CHAR_BIT);
 	cs->hash = 0;
-	cs->smultis = 0;
-	cs->multis = NULL;
 
 	return(cs);
 nomem:
@@ -1127,7 +1099,7 @@ freezeset(struct parse *p, cset *cs)
 		if (cs2->hash == h && cs2 != cs) {
 			/* maybe */
 			for (i = 0; i < css; i++)
-				if (!!CHIN(cs2, i) != !!CHIN(cs, i))
+				if (CHIN(cs2, i) != CHIN(cs, i))
 					break;		/* no */
 			if (i == css)
 				break;			/* yes */
@@ -1171,112 +1143,6 @@ nch(struct parse *p, cset *cs)
 		if (CHIN(cs, i))
 			n++;
 	return(n);
-}
-
-/*
- - mcadd - add a collating element to a cset
- */
-static void
-mcadd( struct parse *p, cset *cs, char *cp)
-{
-	size_t oldend = cs->smultis;
-	void *np;
-
-	cs->smultis += strlen(cp) + 1;
-	np = realloc(cs->multis, cs->smultis);
-	if (np == NULL) {
-		free(cs->multis);
-		cs->multis = NULL;
-		SETERROR(REG_ESPACE);
-		return;
-	}
-	cs->multis = np;
-
-	strlcpy(cs->multis + oldend - 1, cp, cs->smultis - oldend + 1);
-}
-
-/*
- - mcinvert - invert the list of collating elements in a cset
- *
- * This would have to know the set of possibilities.  Implementation
- * is deferred.
- */
-static void
-mcinvert(struct parse *p, cset *cs)
-{
-	assert(cs->multis == NULL);	/* xxx */
-}
-
-/*
- - mccase - add case counterparts of the list of collating elements in a cset
- *
- * This would have to know the set of possibilities.  Implementation
- * is deferred.
- */
-static void
-mccase(struct parse *p, cset *cs)
-{
-	assert(cs->multis == NULL);	/* xxx */
-}
-
-/*
- - isinsets - is this character in any sets?
- */
-static int			/* predicate */
-isinsets(struct re_guts *g, int c)
-{
-	uch *col;
-	int i;
-	int ncols = (g->ncsets+(CHAR_BIT-1)) / CHAR_BIT;
-	unsigned uc = (uch)c;
-
-	for (i = 0, col = g->setbits; i < ncols; i++, col += g->csetsize)
-		if (col[uc] != 0)
-			return(1);
-	return(0);
-}
-
-/*
- - samesets - are these two characters in exactly the same sets?
- */
-static int			/* predicate */
-samesets(struct re_guts *g, int c1, int c2)
-{
-	uch *col;
-	int i;
-	int ncols = (g->ncsets+(CHAR_BIT-1)) / CHAR_BIT;
-	unsigned uc1 = (uch)c1;
-	unsigned uc2 = (uch)c2;
-
-	for (i = 0, col = g->setbits; i < ncols; i++, col += g->csetsize)
-		if (col[uc1] != col[uc2])
-			return(0);
-	return(1);
-}
-
-/*
- - categorize - sort out character categories
- */
-static void
-categorize(struct parse *p, struct re_guts *g)
-{
-	cat_t *cats = g->categories;
-	int c;
-	int c2;
-	cat_t cat;
-
-	/* avoid making error situations worse */
-	if (p->error != 0)
-		return;
-
-	for (c = CHAR_MIN; c <= CHAR_MAX; c++)
-		if (cats[c] == 0 && isinsets(g, c)) {
-			cat = g->ncategories++;
-			cats[c] = cat;
-			for (c2 = c+1; c2 <= CHAR_MAX; c2++)
-				if (cats[c2] == 0 && samesets(g, c, c2))
-					cats[c2] = cat;
-		}
 }
 
 /*
@@ -1491,7 +1357,7 @@ findmust(struct parse *p, struct re_guts *g)
 		*cp++ = (char)OPND(s);
 	}
 	assert(cp == g->must + g->mlen);
-	*cp++ = '\0';		/* just on general principles */
+	*cp = '\0';		/* just on general principles */
 }
 
 /*
