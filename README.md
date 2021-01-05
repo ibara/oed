@@ -13,6 +13,7 @@ OpenED is known to build with the following C compilers:
 * cparser (https://pp.ipd.kit.edu/firm/)
 * lacc (https://github.com/larmel/lacc)
 * Tiny C Compiler (https://bellard.org/tcc/)
+* CompCert (https://compcert.org/)
 
 Building with a compiler not listed here? Add it and send a pull request!
 ## Dependencies
