@@ -5,3 +5,9 @@ oed
 *.core
 Makefile
 README
+!test/Makefile
+!test/README
+test/*.ed
+test/*.red
+test/*.o
+test/*.z

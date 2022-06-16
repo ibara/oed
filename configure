@@ -335,11 +335,12 @@ install:
 	install -c -s -m 755 \${PROG} \${DESTDIR}\${PREFIX}/bin
 	install -c -m 644 ed.1 \${DESTDIR}\${MANDIR}/man1/\${PROG}.1
 
-test:
-	@echo "No tests"
+check:
+	(cd test && \${MAKE} ED=../\${PROG} test)
 
 clean:
 	rm -f \${PROG} \${OBJS}
+	(cd test && \${MAKE} clean)
 
 distclean: clean
 	rm -f Makefile config.h
