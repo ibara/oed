@@ -171,6 +171,24 @@ search_and_replace(regex_t *pat, int gflag, int kth)
 	return 0;
 }
 
+#ifndef REG_STARTEND
+/* Note that this isn't a generic solution. It assumes that pmatch[0].rm_eo
+ * matches the end of 'string' (i.e. is its NUL terminator) and that there
+ * aren't any embedded NUL characters inbetween pmatch[0].rm_so and
+ * pmatch[0].rm_eo. Both things hold true in this program */
+int startend_regexec(regex_t *preg, char *string, size_t nmatch, regmatch_t pmatch[], int eflags) {
+	int start, i;
+	start = pmatch[0].rm_so;
+	if (regexec(preg, string + start, nmatch, pmatch, eflags) == 0) {
+		for (i = 0; i <= preg->re_nsub; i++) {
+			pmatch[i].rm_so += (pmatch[i].rm_so >= 0) ? start : 0;
+			pmatch[i].rm_eo += (pmatch[i].rm_eo >= 0) ? start : 0;
+		}
+		return 0;
+	}
+	return REG_NOMATCH;
+}
+#endif
 
 /* substitute_matching_text: replace text matched by a pattern according to
    a substitution template; return length of rbuf if changed, 0 if unchanged, or
@@ -222,7 +240,11 @@ substitute_matching_text(regex_t *pat, line_t *lp, int gflag, int kth)
 				nempty = rm[0].rm_so = rm[0].rm_eo;
 			rm[0].rm_eo = lp->len;
 		} while (rm[0].rm_so < lp->len && (gflag & GSG || kth) &&
+#ifdef REG_STARTEND
 		    !regexec(pat, txt, SE_MAX, rm, REG_STARTEND | REG_NOTBOL));
+#else
+		    !startend_regexec(pat, txt, SE_MAX, rm, REG_NOTBOL));
+#endif /* REG_STARTEND */
 		i = eot - eom;
 		REALLOC(rbuf, rbufsz, off + i + 2, ERR);
 		if (isbinary)
