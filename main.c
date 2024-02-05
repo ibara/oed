@@ -1,4 +1,4 @@
-/*	$OpenBSD: main.c,v 1.67 2022/01/22 23:22:11 millert Exp $	*/
+/*	$OpenBSD: main.c,v 1.68 2022/11/18 14:52:03 millert Exp $	*/
 /*	$NetBSD: main.c,v 1.3 1995/03/21 09:04:44 cgd Exp $	*/
 
 /* main.c: This file contains the main control and user-interface routines
@@ -186,7 +186,7 @@ top:
 	signal(SIGINT, signal_int);
 	if (sigsetjmp(env, 1)) {
 		status = -1;
-		fputs("\n?\n", stderr);
+		fputs("\n?\n", stdout);
 		seterrmsg("interrupt");
 	} else {
 		init_buffers();
@@ -198,7 +198,7 @@ top:
 				strlcpy(old_filename, *argv,
 				    sizeof old_filename);
 		} else if (argc) {
-			fputs("?\n", stderr);
+			fputs("?\n", stdout);
 			if (**argv == '\0')
 				seterrmsg("invalid filename");
 			if (!interactive)
@@ -217,7 +217,7 @@ top:
 			continue;
 		} else if (n == 0) {
 			if (modified && !scripted) {
-				fputs("?\n", stderr);
+				fputs("?\n", stdout);
 				seterrmsg("warning: file modified");
 				if (!interactive) {
 					if (garrulous)
@@ -252,7 +252,7 @@ top:
 			break;
 		case EMOD:
 			modified = 0;
-			fputs("?\n", stderr);		/* give warning */
+			fputs("?\n", stdout);		/* give warning */
 			seterrmsg("warning: file modified");
 			if (!interactive) {
 				if (garrulous)
@@ -273,7 +273,7 @@ top:
 			quit(3);
 			break;
 		default:
-			fputs("?\n", stderr);
+			fputs("?\n", stdout);
 			if (!interactive) {
 				if (garrulous)
 					fprintf(stderr,

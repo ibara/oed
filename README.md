@@ -33,4 +33,4 @@ for details.
 ## Get a tarball
 Tarballs can be found in the Releases tab.
 
-The latest release is oed-6.7.
+The latest release is oed-7.4.
